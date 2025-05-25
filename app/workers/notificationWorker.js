@@ -1,6 +1,6 @@
-const notificationQueue = require("../queues/notificationQueue");
 const db = require("../model");
 const sendMail = require("../config/nodemailer");
+const notificationQueue = require("../config/notificationQueue");
 const { notifications, users } = db;
 
 notificationQueue.process("newJobPosted", async (job) => {

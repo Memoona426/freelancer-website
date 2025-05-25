@@ -18,8 +18,8 @@ const signUpSchema = Joi.object({
     "string.max": "name cannot exceed 64 characters",
     "string.base": "name must be a string",
   }),
-  role: Joi.string().valid("admin", "superAdmin", "user").required().messages({
-    "any.only": "Only admin or user or superAdmin role is allowed",
+  role: Joi.string().valid("Admin", "Employer", "Freelancer").required().messages({
+    "any.only": "Only Freelancer or Employer or Admin role is allowed",
     "string.empty": "role is not allowed to be empty",
     "any.required": "role is required",
     "string.base": "role must be a string",
@@ -84,7 +84,7 @@ const signInSchema = Joi.object({
 });
 
 
-const forgotPassword = Joi.object({
+const forgotPasswordSchema = Joi.object({
   email: Joi.string()
     .max(255)
     .lowercase()
@@ -132,7 +132,7 @@ const resetPasswordSchema = Joi.object({
 });
 
 
-const varifyAccount = Joi.object({
+const varifyAccountSchema = Joi.object({
   token: Joi.string().required().messages({
     "string.empty": "token is not allowed to be empty",
     "any.required": "token is required",
@@ -141,4 +141,4 @@ const varifyAccount = Joi.object({
 });
 
 
-module.exports = { signInSchema, signUpSchema, resetPasswordSchema, forgotPassword, varifyAccount };
+module.exports = { signInSchema, signUpSchema, resetPasswordSchema, forgotPasswordSchema, varifyAccountSchema };

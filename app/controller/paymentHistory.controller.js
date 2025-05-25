@@ -1,10 +1,10 @@
 const { loggerResponse } = require("../helpers/logger/response");
 
 const db = require("../model");
-const { paymentHistory, milestone } = db;
+const { paymentHistory, milestone, users } = db;
 
 const createPaymentHistory = async (req, res) => {
-  const { milstone_id, transaction_id } = req.body;
+  const { milestone_id, transaction_id } = req.body;
 
   const { role, id } = req;
 
@@ -35,7 +35,7 @@ const createPaymentHistory = async (req, res) => {
         .json({ status: false, message: "user does not exists" });
     }
 
-    const milestoneExists = await milestone.findByPk(id);
+    const milestoneExists = await milestone.findByPk(milestone_id);
 
     if (!milestoneExists) {
       loggerResponse({
@@ -49,7 +49,7 @@ const createPaymentHistory = async (req, res) => {
     }
 
     const data = await paymentHistory.create({
-      milstone_id,
+      milestone_id,
       transaction_id,
     });
 
@@ -80,7 +80,22 @@ const createPaymentHistory = async (req, res) => {
 const getAllPaymentHistory = async (req, res) => {
   const { milestone_id } = req.query;
 
+  const { id, role } = req
+
   try {
+    const userExist = await users.findByPk(id);
+
+    if (!userExist) {
+      loggerResponse({
+        type: "error",
+        message: `user does not exist`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: "user does not exists" });
+    }
+
     const milestoneExists = await milestone.findByPk(milestone_id);
 
     if (!milestoneExists) {

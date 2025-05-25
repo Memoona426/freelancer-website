@@ -5,10 +5,10 @@ const {
 } = require("../helpers/notificationService");
 
 const db = require("../model");
-const { job, bids } = db;
+const { job, bids, users } = db;
 
 const createBidByFreelancer = async (req, res) => {
-  const { proposal = "", status = "", bid_amount = 0, job_id } = req.body;
+  const { proposal = "", bid_amount = 0, job_id } = req.body;
 
   const { role, id } = req;
 
@@ -16,7 +16,7 @@ const createBidByFreelancer = async (req, res) => {
     if (role !== "Freelancer") {
       loggerResponse({
         type: "error",
-        message: "only Freelancer can create job",
+        message: "only Freelancer can bid job",
         res: "",
       });
 
@@ -39,24 +39,35 @@ const createBidByFreelancer = async (req, res) => {
         .json({ status: false, message: "user does not exists" });
     }
 
+    const jobExist = await job.findByPk(job_id);
+
+    if (!jobExist) {
+      loggerResponse({
+        type: "error",
+        message: `job does not exist`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: "job does not exists" });
+    }
+
     const data = await bids.create({
       job_id,
       user_id: id,
       proposal,
-      status,
+      status: "pending",
       bid_amount,
     });
 
-    const findJob = await job.findByPk(job_id)
-
-    await notifyNewBid({
-      employeer_id: findJob?.user_id,
-      job_id,
-      user_id: id,
-      proposal,
-      status,
-      bid_amount,
-    });
+    // await notifyNewBid({
+    //   employeer_id: jobExist?.user_id,
+    //   job_id,
+    //   user_id: id,
+    //   proposal,
+    //   status,
+    //   bid_amount,
+    // });
 
     loggerResponse({
       type: "info",

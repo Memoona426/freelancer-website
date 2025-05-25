@@ -1,7 +1,7 @@
 const { verifyJwt } = require("../config/jwt");
 const { unAuthenticateResponse } = require("../helpers/response");
-const User = require("../model/users");
-
+const db = require("../model")
+const { users } = db
 const authGuard = async (req, res, next) => {
   try {
     const header = req.headers["authorization"];
@@ -22,7 +22,7 @@ const authGuard = async (req, res, next) => {
     const id = verify.id;
     const role = verify.role;
 
-    const userExist = await User.findOne({ _id: id });
+    const userExist = await users.findByPk(id);
     if (token !== userExist.token) {
       return res.status(401).json({
         message: "Access denied, token is invalid.",

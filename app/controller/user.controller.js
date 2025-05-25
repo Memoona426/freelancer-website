@@ -1,22 +1,34 @@
 const { loggerResponse } = require("../helpers/logger/response");
 
 const db = require("../model");
-const { users } = db;
+const { users, bids, contract, job, milestone, paymentHistory, role } = db;
 
 const toggleUserByAdmin = async (req, res) => {
   const { userId } = req.query;
-  const { role } = req;
+  const { id, role } = req;
 
   try {
-    if (role !== "admin") {
+    if (role !== "Admin") {
       loggerResponse({
         type: "error",
-        message: `only admin can toggle status of user`,
+        message: `only Admin can toggle status of user`,
         res: "",
       });
       return res.status(400).json({
         status: false,
-        message: "only admin can toggle status of user",
+        message: "only Admin can toggle status of user",
+      });
+    }
+
+    if (id === parseInt(userId)) {
+      loggerResponse({
+        type: "error",
+        message: `cant update its own status`,
+        res: "",
+      });
+      return res.status(400).json({
+        status: false,
+        message: `cant update its own status`,
       });
     }
 
@@ -25,28 +37,16 @@ const toggleUserByAdmin = async (req, res) => {
     if (!userExist) {
       loggerResponse({
         type: "error",
-        message: `user does not exist`,
+        message: `user to be update does not exist`,
         res: "",
       });
       return res
         .status(400)
-        .json({ status: false, message: "user does not exists" });
-    }
-
-    if (userExist.role !== "user") {
-      loggerResponse({
-        type: "error",
-        message: `Only toggle status of user`,
-        res: "",
-      });
-
-      return res
-        .status(400)
-        .json({ status: false, message: `Only toggle status of user` });
+        .json({ status: false, message: `user to be update does not exist`, });
     }
 
     const [_, [updatedUser]] = await users.update(
-      { is_banned: !userExist },
+      { is_banned: !userExist?.is_banned },
       {
         where: { id: userId },
         returning: true,
@@ -61,7 +61,7 @@ const toggleUserByAdmin = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "user status has been toggle",
-      user: updatedUser,
+      data: updatedUser,
     });
   } catch (err) {
     loggerResponse({
@@ -78,32 +78,51 @@ const toggleUserByAdmin = async (req, res) => {
 };
 
 const getAllEmployeeByAdmin = async (req, res) => {
-  let { role } = req;
+  let { role: roleName, id } = req;
   let { page = 1, rowPerPageLimit = 10 } = req.query;
   try {
-    if (role !== "admin") {
+    if (roleName !== "Admin") {
       loggerResponse({
         type: "error",
-        message: `Only for admin`,
+        message: `Only for Admin`,
         res: "",
       });
 
       return res
         .status(400)
-        .json({ status: false, message: `Only for Super admin` });
+        .json({ status: false, message: `Only for admin` });
+    }
+
+    const userExist = await users.findByPk(id);
+
+    if (!userExist) {
+      loggerResponse({
+        type: "error",
+        message: `user does not exist`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: "user does not exists" });
     }
 
     page = parseInt(page);
     rowPerPageLimit = parseInt(rowPerPageLimit);
 
-    const totalUser = await users.count({
-      where: { role: "Employer" },
+    const offset = (page - 1) * rowPerPageLimit;
+
+    const findEmployeerRoleId = await role.findOne({
+      where: { name: "Employer" },
     });
 
-    const users = await users.findAll({
-      where: { role: "Employer" },
+    const totalEmployer = await users.count({
+      where: { role_id: findEmployeerRoleId?.id },
+    });
+
+    const data = await users.findAll({
+      where: { role_id: findEmployeerRoleId?.id },
       offset,
-      limit,
+      limit: rowPerPageLimit,
     });
 
     loggerResponse({
@@ -114,8 +133,8 @@ const getAllEmployeeByAdmin = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "fetch all users",
-      users,
-      totalUser,
+      data,
+      totalEmployer,
     });
   } catch (err) {
     loggerResponse({
@@ -132,32 +151,51 @@ const getAllEmployeeByAdmin = async (req, res) => {
 };
 
 const getAllFreelancersByAdmin = async (req, res) => {
-  let { role } = req;
+  let { role: roleName, id } = req;
   let { page = 1, rowPerPageLimit = 10 } = req.query;
   try {
-    if (role !== "admin") {
+    if (roleName !== "Admin") {
       loggerResponse({
         type: "error",
-        message: `Only for admin`,
+        message: `Only for Admin`,
         res: "",
       });
 
       return res
         .status(400)
-        .json({ status: false, message: `Only for Super admin` });
+        .json({ status: false, message: `Only for admin` });
+    }
+
+    const userExist = await users.findByPk(id);
+
+    if (!userExist) {
+      loggerResponse({
+        type: "error",
+        message: `user does not exist`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: "user does not exists" });
     }
 
     page = parseInt(page);
     rowPerPageLimit = parseInt(rowPerPageLimit);
 
-    const totalUser = await users.count({
-      where: { role: "Freelancer" },
+    const offset = (page - 1) * rowPerPageLimit;
+
+    const findFreelancerRoleId = await role.findOne({
+      where: { name: "Freelancer" },
     });
 
-    const users = await users.findAll({
-      where: { role: "Freelancer" },
+    const totalFreelancer = await users.count({
+      where: { role_id: findFreelancerRoleId?.id },
+    });
+
+    const data = await users.findAll({
+      where: { role_id: findFreelancerRoleId?.id },
       offset,
-      limit,
+      limit: rowPerPageLimit,
     });
 
     loggerResponse({
@@ -168,8 +206,8 @@ const getAllFreelancersByAdmin = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "fetch all users",
-      users,
-      totalUser,
+      data,
+      totalFreelancer,
     });
   } catch (err) {
     loggerResponse({
@@ -185,8 +223,89 @@ const getAllFreelancersByAdmin = async (req, res) => {
   }
 };
 
+const adminSystemData = async (req, res) => {
+  let { id, role: roleName } = req;
+  try {
+    if (roleName !== "Admin") {
+      loggerResponse({
+        type: "error",
+        message: `Only for admin`,
+        res: "",
+      });
+
+      return res
+        .status(400)
+        .json({ status: false, message: `Only for admin` });
+    }
+
+    const userExist = await users.findByPk(id);
+
+    if (!userExist) {
+      loggerResponse({
+        type: "error",
+        message: `user does not exist`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: "user does not exists" });
+    }
+
+    const findEmployeerRoleId = await role.findOne({
+      where: { name: "Employer" },
+    });
+
+    const findFreelancerRoleId = await role.findOne({
+      where: { name: "Freelancer" },
+    });
+
+    const totalEmployer = await users.count({
+      where: { role_id: findEmployeerRoleId?.id },
+    });
+
+    const totalFreelancer = await users.count({
+      where: { role_id: findFreelancerRoleId?.id },
+    });
+
+    const totalContracts = await contract.count();
+    const totalMileStone = await milestone.count();
+    const totalPaymentHistory = await paymentHistory.count();
+    const totalBids = await bids.count();
+    const totalJobs = await job.count();
+
+    loggerResponse({
+      type: "info",
+      message: `fetch all adminSystemData`,
+    });
+
+    return res.status(200).json({
+      status: true,
+      message: "fetch all adminSystemData",
+      totalEmployer,
+      totalFreelancer,
+      totalContracts,
+      totalMileStone,
+      totalPaymentHistory,
+      totalBids,
+      totalJobs,
+    });
+  } catch (err) {
+    loggerResponse({
+      type: "error",
+      message: `internal server error in adminSystemData Api`,
+      res: err,
+    });
+
+    return res.status(500).json({
+      status: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 module.exports = {
   toggleUserByAdmin,
   getAllEmployeeByAdmin,
   getAllFreelancersByAdmin,
+  adminSystemData,
 };

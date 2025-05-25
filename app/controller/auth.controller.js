@@ -7,15 +7,21 @@ const {
   signUpSchema,
   signInSchema,
   resetPasswordSchema,
+  varifyAccountSchema,
+  forgotPasswordSchema,
 } = require("../validations/auth.joi");
 const { validateSchema } = require("../helpers/validate");
 
 const db = require("../model");
+const { sequelize } = require("../config/db");
 const { role, users } = db;
 
 const signUp = async (req, res) => {
   const { name, email, password, confirmPassword, role: roleName } = req.body;
+  let t = null
+
   try {
+    t = await sequelize.transaction();
     const { error: schemaErrors } = validateSchema(signUpSchema, req.body);
     if (schemaErrors) {
       loggerResponse({
@@ -67,7 +73,7 @@ const signUp = async (req, res) => {
       role_id: userRole?.id,
     });
 
-    const token = generateJwt({ id: newUser._id, role: userRole?.name });
+    const token = generateJwt({ id: newUser.id, role: userRole?.name });
     const sendMailDto = {
       to: email,
       subject: "Account Activation",
@@ -80,6 +86,7 @@ const signUp = async (req, res) => {
       type: "info",
       message: "Please check your mail to verify your account.",
     });
+    await t.commit();
 
     return res.status(200).json({
       status: true,
@@ -87,6 +94,7 @@ const signUp = async (req, res) => {
       sendMailDto,
     });
   } catch (error) {
+    await t.rollback();
     loggerResponse({
       type: "error",
       message: `internal server error in createUser Api`,
@@ -125,7 +133,7 @@ const signIn = async (req, res) => {
       });
     }
 
-    if (!userExists.is_varified) {
+    if (!userExists.is_verified) {
       loggerResponse({
         type: "error",
         message: "your account is not activated, please activate your account",
@@ -134,6 +142,18 @@ const signIn = async (req, res) => {
       return res.status(400).json({
         status: false,
         message: "your account is not activated, please activate your account",
+      });
+    }
+
+    if (userExists.is_banned) {
+      loggerResponse({
+        type: "error",
+        message: "your account is Banned",
+      });
+
+      return res.status(400).json({
+        status: false,
+        message: "your account is Banned",
       });
     }
 
@@ -153,13 +173,13 @@ const signIn = async (req, res) => {
       });
     }
 
-    const roleName = await role.findeOne({
+    const roleName = await role.findOne({
       where: {
         id: userExists?.role_id,
       },
     });
 
-    const token = generateJwt({ id: userExists._id, role: roleName?.name });
+    const token = generateJwt({ id: userExists.id, role: roleName?.name });
 
     const updatedUser = await users.update(
       { token },
@@ -196,7 +216,7 @@ const signIn = async (req, res) => {
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
-    const { error: schemaErrors } = validateSchema(forgotPassword, req.body);
+    const { error: schemaErrors } = validateSchema(forgotPasswordSchema, req.body);
 
     if (schemaErrors) {
       loggerResponse({
@@ -212,11 +232,36 @@ const forgotPassword = async (req, res) => {
       },
     });
 
+
     if (!userExists) {
       loggerResponse({
         type: "error",
         message: "User not found",
       });
+
+      if (!userExists.is_verified) {
+        loggerResponse({
+          type: "error",
+          message: "your account is not activated, please activate your account",
+        });
+
+        return res.status(400).json({
+          status: false,
+          message: "your account is not activated, please activate your account",
+        });
+      }
+
+      if (userExists.is_banned) {
+        loggerResponse({
+          type: "error",
+          message: "your account is Banned",
+        });
+
+        return res.status(400).json({
+          status: false,
+          message: "your account is Banned",
+        });
+      }
 
       return res.status(400).json({
         status: false,
@@ -224,13 +269,13 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const roleName = await role.findeOne({
+    const roleName = await role.findOne({
       where: {
         id: userExists?.role_id,
       },
     });
 
-    const token = generateJwt({ id: userExists._id, role: roleName });
+    const token = generateJwt({ id: userExists.id, role: roleName });
     const sendMailDto = {
       to: email,
       subject: "Account Password Reset",
@@ -299,6 +344,30 @@ const resetPassword = async (req, res) => {
       });
     }
 
+    if (!user.is_verified) {
+      loggerResponse({
+        type: "error",
+        message: "your account is not activated, please activate your account",
+      });
+
+      return res.status(400).json({
+        status: false,
+        message: "your account is not activated, please activate your account",
+      });
+    }
+
+    if (user.is_banned) {
+      loggerResponse({
+        type: "error",
+        message: "your account is Banned",
+      });
+
+      return res.status(400).json({
+        status: false,
+        message: "your account is Banned",
+      });
+    }
+
     const encryptedPassword = await hashPassword(password);
 
     const [_, [userData]] = await users.update(
@@ -332,7 +401,7 @@ const resetPassword = async (req, res) => {
 const varifyAccount = async (req, res) => {
   const { token } = req.query;
   try {
-    const { error: schemaErrors } = validateSchema(varifyAccount, req.body);
+    const { error: schemaErrors } = validateSchema(varifyAccountSchema, req.query);
 
     if (schemaErrors) {
       loggerResponse({
@@ -358,7 +427,7 @@ const varifyAccount = async (req, res) => {
     }
 
     const [_, [userData]] = await users.update(
-      { isActive: true },
+      { is_verified: true },
       {
         where: { id: verifiedUser?.id },
         returning: true,

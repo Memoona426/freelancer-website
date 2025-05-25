@@ -14,6 +14,7 @@ db.bids = require("./bids")(sequelize, DataTypes);
 db.contract = require("./contract")(sequelize, DataTypes);
 db.milestone = require("./milestone")(sequelize, DataTypes);
 db.paymentHistory = require("./paymentHistory")(sequelize, DataTypes);
+db.message = require("./message")(sequelize, DataTypes);
 
 // for user table
 db.users.belongsTo(db.role, {
@@ -104,5 +105,14 @@ db.paymentHistory.belongsTo(db.milestone, {
   foreignKey: 'milestone_id',
   as: 'milestone'
 });
+
+db.message.belongsTo(db.users, { foreignKey: 'user_id', as: 'sender' });
+
+// Message belongs to Contract
+db.message.belongsTo(db.contract, { foreignKey: 'contract_id' });
+
+// Optional: Add reverse relationships if needed
+db.users.hasMany(db.message, { foreignKey: 'user_id', as: 'sentMessages' });
+db.contract.hasMany(db.message, { foreignKey: 'contract_id' });
 
 module.exports = db;

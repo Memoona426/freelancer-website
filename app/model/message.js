@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
           key: 'id'
         }
       },
-      context: {
+      content: {
         type: DataTypes.TEXT,
         allowNull: false
       },
@@ -31,18 +31,18 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         allowNull: false
       },
-      created_at: {
+      createdAt: {
         type: DataTypes.DATE,
         allowNull: false
       },
-      updated_at: {
+      updatedAt: {
         type: DataTypes.DATE,
         allowNull: false
       }
     }, {
       tableName: 'message',
       schema: 'public',
-      timestamps: false // Set to true if Sequelize should auto-manage createdAt/updatedAt
+      timestamps: true
     });
   };
   

@@ -2,7 +2,7 @@ const { loggerResponse } = require("../helpers/logger/response");
 const { notifyNewJobPosted } = require("../helpers/notificationService");
 
 const db = require("../model");
-const { job } = db;
+const { job, users } = db;
 
 const postJobsByEmployer = async (req, res) => {
   const {
@@ -43,6 +43,23 @@ const postJobsByEmployer = async (req, res) => {
         .json({ status: false, message: "user does not exists" });
     }
 
+    const jobExist = await job.findOne({
+      where: {
+        title
+      }
+    });
+
+    if (jobExist) {
+      loggerResponse({
+        type: "error",
+        message: `jo Exists`,
+        res: "",
+      });
+      return res
+        .status(400)
+        .json({ status: false, message: `jo Exists`, });
+    }
+
     const data = await job.create({
       user_id: id,
       title,
@@ -53,15 +70,20 @@ const postJobsByEmployer = async (req, res) => {
       deadline,
     });
 
-    await notifyNewJobPosted({
-      job_id: data.id,
-      title,
-      description,
-      budget_type,
-      budget,
-      skill_required,
-      deadline,
-    });
+    // await notifyNewJobPosted({
+    //   job_id: data.id,
+    //   title,
+    //   description,
+    //   budget_type,
+    //   budget,
+    //   skill_required,
+    //   deadline,
+    // }, {
+    //   attempts: 5,
+    //   backoff: 5000,
+    //   delay: 10000,
+    //   priority: 1,
+    // });
 
     loggerResponse({
       type: "info",

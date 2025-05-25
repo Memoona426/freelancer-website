@@ -7,7 +7,7 @@
 
 /**
  * @swagger
- * /api/user/profile:
+ * /api/user/profile/createProfile:
  *   post:
  *     summary: Create a user profile
  *     tags:
@@ -21,59 +21,24 @@
  *           schema:
  *             type: object
  *             properties:
- *               age:
- *                 type: string
- *                 example: "25"
- *               gender:
- *                 type: integer
- *                 example: 1
- *               phone:
- *                 type: string
- *                 example: "+1234567890"
- *               address:
- *                 type: string
- *                 example: "123 Street, City"
  *               bio:
  *                 type: string
- *                 example: "Web Developer"
- *               profilePic:
+ *                 example: "Hello this is my bio"
+ *               experiance:
  *                 type: string
- *                 example: "http://example.com/profilepic.jpg"
+ *                 example: "2 years"
+ *               profile_picture:
+ *                 type: string
+ *                 example: ""
+ *               company_name:
+ *                 type: string
+ *                 example: "xyz"
+ *               website:
+ *                 type: string
+ *                 example: "Webdeveloper.com"
  *     responses:
  *       201:
  *         description: Profile created successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Profile created successfully
- *                 profile:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     userId:
- *                       type: string
- *                     fullName:
- *                       type: string
- *                     age:
- *                       type: string
- *                     gender:
- *                       type: integer
- *                     phone:
- *                       type: string
- *                     address:
- *                       type: string
- *                     bio:
- *                       type: string
- *                     profilePic:
- *                       type: string
  *       400:
  *         description: Profile already exists
  *       500:
@@ -82,7 +47,7 @@
 
 /**
  * @swagger
- * /api/user/profile:
+ * /api/user/profile/getProfile:
  *   get:
  *     summary: Get user profile
  *     tags:
@@ -132,7 +97,7 @@
 
 /**
  * @swagger
- * /api/user/profile:
+ * /api/user/profile/updateProfile:
  *   patch:
  *     summary: Update user profile
  *     tags:
@@ -146,55 +111,24 @@
  *           schema:
  *             type: object
  *             properties:
- *               fullName:
- *                 type: string
- *               age:
- *                 type: string
- *               gender:
- *                 type: integer
- *               phone:
- *                 type: string
- *               address:
- *                 type: string
  *               bio:
  *                 type: string
- *               profilePic:
+ *                 example: "Hello this is my bio"
+ *               experiance:
  *                 type: string
+ *                 example: "2 years"
+ *               profile_picture:
+ *                 type: string
+ *                 example: ""
+ *               company_name:
+ *                 type: string
+ *                 example: "xyz"
+ *               website:
+ *                 type: string
+ *                 example: "Webdeveloper.com"
  *     responses:
  *       200:
  *         description: Profile updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Profile updated
- *                 profile:
- *                   type: object
- *                   properties:
- *                     _id:
- *                       type: string
- *                     userId:
- *                       type: string
- *                     fullName:
- *                       type: string
- *                     age:
- *                       type: string
- *                     gender:
- *                       type: integer
- *                     phone:
- *                       type: string
- *                     address:
- *                       type: string
- *                     bio:
- *                       type: string
- *                     profilePic:
- *                       type: string
  *       404:
  *         description: Profile not found, please create a profile.
  *       500:
@@ -203,7 +137,7 @@
 
 /**
  * @swagger
- * /api/user/profile:
+ * /api/user/profile/deleteProfile:
  *   delete:
  *     summary: Delete user profile
  *     tags:

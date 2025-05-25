@@ -4,12 +4,14 @@ const {
   toggleUserByAdmin,
   getAllFreelancersByAdmin,
   getAllEmployeeByAdmin,
+  adminSystemData
 } = require("../../controller/user.controller");
 
 const router = express.Router();
 
-router.post("/toggleUserByAdmin", authGuard, toggleUserByAdmin);
-router.get("/getAllFreelancersByAdmin", authGuard, getAllFreelancersByAdmin);
-router.get("/getAllEmployeeByAdmin", authGuard, getAllEmployeeByAdmin);
+router.patch("/admin/toggleUserByAdmin", authGuard, toggleUserByAdmin);
+router.get("/admin/getAllFreelancersByAdmin", authGuard, getAllFreelancersByAdmin);
+router.get("/admin/getAllEmployeeByAdmin", authGuard, getAllEmployeeByAdmin);
+router.get("/admin/adminSystemData", authGuard, adminSystemData);
 
 module.exports = router;
